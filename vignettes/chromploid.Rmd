@@ -1,0 +1,72 @@
+---
+title: "chromploid Package"
+author: "Rosana Zenil-Ferguson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Chromploid package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Chromploid is a package that allows for calculation of likelihoods  chromosome number or ploidy change models. This package allows user to choose among some fixed models but it also has the flexibility to extend to custom-user models.
+
+Models included in the package are:
+
+1. BiChroM: Chromosome number change associated with binary trait change (10 parameters)
+2. PloidEvol: Ploidy change (6 parameters)
+3. ChromEvol M3: Chromosome number change model M3 from Mayrose et al. (2010)^[A footnote here.]
+
+## Installation
+
+## Negative log likelihood
+
+The function ```neglolglikelihood()``` is possibly the most important and critical of the package. It calculates the negative log-likelihood of any discrete trait model for chromosome number or ploidy change. Minimizing negative log-likelihoods allows us to infer model parameters, that is, obtaining maximum likelihood estimates (MLEs), profile likelihoods, likelihood-confidence intervals, and likelihood ratio tests necessary to answer biological questions. I will describe how to use this important function  after introducing the models coded in chromploid. 
+
+## BiChroM
+
+Binary trait associated with chromosome number change model (BiChroM) is a continuous time Markov chain (CTMC) that allows for estimation and testing of chromosomal change rates correlated with a binary trait. The functions associated to BiChroM  model are:
+
+* ```Q_bichrom()```: Creates the Q-matrix (instantaneous probability rate matrix) for later calculation of likelihood estimates
+* ```Q_unichrom()```: Creates the marginal Q-matrix necessary for calculation of univariate profile likelihoods
+* ```Q_bibichrom()```: Creates the marginal Q-matrix necessary for calculation of bivariate profile likelihoods
+* ```Q_reducedbichrom()```: Creates the marginal Q-matrix necessary for calculation of likelihood ratio tests.
+* ```bichrom_dataset()```: Transforms a dataset of chromosome and binary traits to input in the functions above
+
+### Full inference for BiChroM model
+
+1. Description of parameters in BiChroM
+
+  * $\lambda_0, \lambda_1$: Rate of gain in one chromosome for taxa with binary trait 0, or binary trait 1 respectively.
+  * $\mu_0, \mu_1$: Rate of loss in one chromosome for taxa with binary trait 0, or binary trait 1 respectively.
+  * $\rho_0, \rho_1$: Rate of chromosome doubling for taxa with binary trait 0, or binary trait 1 respectively.
+  * $q_{01},q_{10}$: Rate of transition between binary state values, from 0 to 1 or vice versa.
+  * $\epsilon_0, \epsilon_1$: Ancillary parameters  of chromosomal changes. Rate of chromosome number changes after ```size``` has been determined.
+  
+2. BiChroM simulation and estimation
+  * Choose a set of fixed parameter values. For example $(\lambda_0,\lambda_1, \mu_0,\mu_1,\rho_0,\rho_1,q_{01},q_{10},\epsilon_0,\epsilon_1)=$
+  $(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57E-14)$
+  
+  * Calculate BiChroM Q-matrix
+  
+  ```
+  log.params<-log(c(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57E-14))
+  N<- 50
+  mymatrix<-Q_bichrom(log.theta=log.params, size=N)
+  ```
+  
+  * Simulate a tree with 500 taxa and BiChroM values 
+  Assuming that the root of the tree has a value 56 means that the root is has 5 haploid chromosomes and its binary type is 1. 
+  
+  ```
+  mytree<- sim.bdtree(b=0.055, stop="taxa", n=500)
+  mysample<- sim.char2(phy=mytree, par=mymatrix,model="discrete", root=56)
+  ```
+  
+  * Calculate the likelihood of the tree, assuming that the root has a uniform distribution for chromosome number and binary state ```pi.0=NULL``` (other options available).
+  
+  ```
+  nllike<-negloglikelihood(log.par=log.params, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, size=50)
+```
+  
+  
