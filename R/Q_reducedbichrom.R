@@ -5,6 +5,7 @@
 #' @param size Maximum number of chromosomes in the sample (recommended no more than 50, states larger than that should be coded as 51)
 #' @param equal.param by default "rho0"="rho1" but user can specify the parameters forced to be equal
 #' @param location position in log.pars where the value of the equal.param is located, by default location=5
+#' @export
 Q_reducedbichrom<-function(log.pars,size, equal.param=c("rho0","rho1"), location.par=5){
 #Parameters
 if(length(equal.param)!=2){
@@ -58,7 +59,7 @@ for (i in (aux1+1):(C-1)){
 	Q[i,C]<- r.0+Q[i,C]
 	Q[i,(C+i)]<- prob.01
 	}
-	
+
 
 Q[C,C]<- -(e.0)
 Q[C,(2*C)]<-e.0
@@ -85,7 +86,7 @@ for(i in (C+aux1+1):aux2){
 	Q[i,2*C]<- r.1+Q[i,2*C]
 	Q[i,(i-C)]<- prob.10
 	}
-	
+
 Q[(2*C),(2*C)]<- -(e.1)
 Q[(2*C),C]<-e.1
 return(Q)

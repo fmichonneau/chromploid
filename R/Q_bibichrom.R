@@ -1,10 +1,11 @@
-#' Calculates Q-matrix for bivariate profile likelihoods for BiChroM model 
-#' 
+#' Calculates Q-matrix for bivariate profile likelihoods for BiChroM model
+#'
 #' @param log.pars vector of size 8 indicating values in ln of nuisance parameters (excluding the ones of interest for the profile likelihood)
 #' @param log.theta0 vector of size 2 indicating values parameters of interest in BiChroM. Options are (lambda0, lambda1, mu0, mu1, rho0, rho1, q01,q10, e01, e10)
 #' @param size Maximum number of chromosomes in the sample (recommended no more than 50, states larger than that should be coded as 51)
 #' @param param.name vector of size 2 indicating the names of parameters of interest. E.g. c("rho0","rho1")
-#' @return Q a sparse matrix of size 2*(size+1) 
+#' @return Q a sparse matrix of size 2*(size+1)
+#' @export
 
 Q_bibichrom<-function(log.pars,log.theta0,size, param.name){
 #Parameters
@@ -55,7 +56,7 @@ for (i in (aux1+1):(C-1)){
 	Q[i,C]<- r.0+Q[i,C]
 	Q[i,(C+i)]<- prob.01
 	}
-	
+
 
 Q[C,C]<- -(e.0)
 Q[C,(2*C)]<-e.0
@@ -82,7 +83,7 @@ for(i in (C+aux1+1):aux2){
 	Q[i,2*C]<- r.1+Q[i,2*C]
 	Q[i,(i-C)]<- prob.10
 	}
-	
+
 Q[(2*C),(2*C)]<- -(e.1)
 Q[(2*C),C]<-e.1
 return(Q)

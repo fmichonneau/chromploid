@@ -19,6 +19,15 @@ Models included in the package are:
 
 ## Installation
 
+You'll need package ```devtools```. Chromploid is easily installed from github
+```{r,error=FALSE}
+library("devtools")
+devtools::install_github("roszenil/chromploid")
+library("chromploid")
+```
+
+Chromploid package depends on libraries `ape`, `geiger`, and `expm` so make sure you are running those too.
+
 ## Negative log likelihood
 
 The function ```neglolglikelihood()``` is possibly the most important and critical of the package. It calculates the negative log-likelihood of any discrete trait model for chromosome number or ploidy change. Minimizing negative log-likelihoods allows us to infer model parameters, that is, obtaining maximum likelihood estimates (MLEs), profile likelihoods, likelihood-confidence intervals, and likelihood ratio tests necessary to answer biological questions. I will describe how to use this important function  after introducing the models coded in chromploid. 
@@ -49,7 +58,7 @@ Binary trait associated with chromosome number change model (BiChroM) is a conti
   
   * Calculate BiChroM Q-matrix
   
-  ```
+  ```{r}
   log.params<-log(c(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57E-14))
   N<- 50
   mymatrix<-Q_bichrom(log.theta=log.params, size=N)
