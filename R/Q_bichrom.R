@@ -3,11 +3,7 @@
 #'
 #' @param log.theta vector of size 10 indicating parameters in ln scale for BiChoM the order of the parameters is (lambda0, lambda1, mu0, mu1, rho0, rho1, q01,q10, e0, e1)
 #' @param size Maximum number of chromosomes in the sample (recommended no more than 50, states larger than that should be coded as 51)
-<<<<<<< Updated upstream
-#' @return Q a sparse matrix of size 2*(size+1) 
-=======
 #' @return Q a sparse matrix of size 2*(size+1)
->>>>>>> Stashed changes
 #' @export
 Q_bichrom<-function(log.theta,size){
 #Parameters
