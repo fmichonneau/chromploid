@@ -4,7 +4,7 @@
 \alias{negloglikelihood}
 \title{Calculates the negative log-likelihood of a chromosome or ploidy model}
 \usage{
-negloglikelihood(log.par, phy, tip.values, pi.0, Q.FUN, ...)
+negloglikelihood(log.par, phy, tip.values, pi.0, Q.FUN, Q.ARGS)
 }
 \arguments{
 \item{log.par}{A vector of parameter values in ln scale. Length of the vector depends on model defined by Q.FUN}
@@ -17,7 +17,7 @@ negloglikelihood(log.par, phy, tip.values, pi.0, Q.FUN, ...)
 
 \item{Q.FUN}{A function that calculates the Q-matrix of the parameters of interest}
 
-\item{...}{Extra parameters called in Q.FUN}
+\item{Q.ARGS}{A list of arguments to be passed to Q.FUN}
 }
 \value{
 Result is the negative log-likelihood of parameters log.par given the model in Q.FUN
