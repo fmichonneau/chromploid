@@ -75,7 +75,7 @@ Binary trait associated with chromosome number change model (BiChroM) is a conti
   * Calculate the likelihood of the tree, assuming that the root has a uniform distribution for chromosome number and binary state ```pi.0=NULL``` (other options available).
   
   ```
-  nllike<-negloglikelihood(log.par=log.params, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, size=50)
+  nllike<-negloglikelihood(log.par=log.params, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, Q.ARGS=list(size=50))
 ```
   
   
