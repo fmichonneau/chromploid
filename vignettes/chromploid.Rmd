@@ -20,17 +20,18 @@ Models included in the package are:
 ## Installation
 
 You'll need package ```devtools```. Chromploid is easily installed from github
-```{r,error=FALSE}
+```{r,error=FALSE, message=FALSE, warning=FALSE}
 library("devtools")
 devtools::install_github("roszenil/chromploid")
 library("chromploid")
+library("geiger") #chromploid depends on geiger so don't forget to load it
 ```
 
 Chromploid package depends on libraries `ape`, `geiger`, and `expm` so make sure you are running those too.
 
 ## Negative log likelihood
 
-The function ```neglolglikelihood()``` is possibly the most important and critical of the package. It calculates the negative log-likelihood of any discrete trait model for chromosome number or ploidy change. Minimizing negative log-likelihoods allows us to infer model parameters, that is, obtaining maximum likelihood estimates (MLEs), profile likelihoods, likelihood-confidence intervals, and likelihood ratio tests necessary to answer biological questions. I will describe how to use this important function  after introducing the models coded in chromploid. 
+The function ```neglolglikelihood()``` is possibly the most important and critical of the package. It calculates the negative log-likelihood of any discrete trait model for chromosome number or ploidy change. Minimizing negative log-likelihoods allows us to infer model parameters, that is, obtaining maximum likelihood estimates (MLEs), profile likelihoods, likelihood-confidence intervals, and likelihood ratio tests necessary to answer biological questions. I will describe how to use this important function  after introducing the models coded in chromploid.
 
 ## BiChroM
 
@@ -51,31 +52,58 @@ Binary trait associated with chromosome number change model (BiChroM) is a conti
   * $\rho_0, \rho_1$: Rate of chromosome doubling for taxa with binary trait 0, or binary trait 1 respectively.
   * $q_{01},q_{10}$: Rate of transition between binary state values, from 0 to 1 or vice versa.
   * $\epsilon_0, \epsilon_1$: Ancillary parameters  of chromosomal changes. Rate of chromosome number changes after ```size``` has been determined.
-  
+
 2. BiChroM simulation and estimation
-  * Choose a set of fixed parameter values. For example $(\lambda_0,\lambda_1, \mu_0,\mu_1,\rho_0,\rho_1,q_{01},q_{10},\epsilon_0,\epsilon_1)=$
-  $(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57E-14)$
-  
+  * Choose a set of fixed parameter values.
+For example $(\lambda_0,\lambda_1, \mu_0,\mu_1,\rho_0,\rho_1,q_{01},q_{10},\epsilon_0,\epsilon_1)=$
+$(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57e-14)$
+
   * Calculate BiChroM Q-matrix
-  
-  ```{r}
-  log.params<-log(c(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57E-14))
-  N<- 50
-  mymatrix<-Q_bichrom(log.theta=log.params, size=N)
-  ```
-  
-  * Simulate a tree with 500 taxa and BiChroM values 
-  Assuming that the root of the tree has a value 56 means that the root is has 5 haploid chromosomes and its binary type is 1. 
-  
-  ```
-  mytree<- sim.bdtree(b=0.055, stop="taxa", n=500)
-  mysample<- sim.char2(phy=mytree, par=mymatrix,model="discrete", root=56)
-  ```
-  
-  * Calculate the likelihood of the tree, assuming that the root has a uniform distribution for chromosome number and binary state ```pi.0=NULL``` (other options available).
-  
-  ```
-  nllike<-negloglikelihood(log.par=log.params, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, Q.ARGS=list(size=50))
+
+```{r, message=FALSE, warning=FALSE}
+log.params<-log(c(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57E-14))
+N<- 50
+mymatrix<-Q_bichrom(log.theta=log.params, size=N)
 ```
-  
-  
+
+  * Simulate a tree with 500 taxa and BiChroM values
+  Assuming that the root of the tree has a value 56 means that the root is has 5 haploid chromosomes and its binary type is 1.
+
+```{r}
+mytree<- sim.bdtree(b=0.055, stop="taxa", n=500, seed=1) # Seed was fixed to obtain always the same tree
+plot(mytree,type="fan",cex=0.2, no.margin=TRUE)
+set.seed(1) #Seed was fixed to obtain always the same sample
+mysample<- sim.char2(phy=mytree, par=mymatrix,model="discrete", root=56)
+```
+
+  * Calculate the likelihood of the tree, assuming that the root has a uniform distribution for chromosome number and binary state ```pi.0=NULL``` (other options available). But first a very common error
+
+```{r, eval=FALSE}
+nllike<-negloglikelihood(log.par=log.params, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, Q.ARGS=list(size=50))
+> Error in tip.values[i, charnum + 1] : incorrect number of dimensions
+```
+  The error above indicates that you don't have in the first column the species names and in the second column the sample for BiChrom. An easy way to fix it is converting your sample into a data frame with first column having taxa names and second column having the sample needed in BiChroM
+
+```{r}
+mysample<-data.frame(taxa=rownames(mysample),sample=as.numeric(mysample))
+head(mysample)
+```
+  Then re-run the argument to calculate the negative log-likelihood ```nllike```
+```{r}
+nllike<-negloglikelihood(log.par=log.params, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, size=50)
+nllike
+```
+
+3. BiChrom optimization
+If you have a tree and a sample and you need to find the maximum likelihood estimates of the parameters determined by BiChroM you can use any optimizer of your choice. I suggest using package ```nloptr``` but ```optim``` from ```stats``` package works fine as long as you manipulate correctly the options. Here's an example using ```nloptr```.
+
+```{r, eval=FALSE}
+library(nloptr)
+x.0<- log(c(0.12, 0.001, 0.25, 0.002,0.036, 0.006, 0.04,0.02, 1.792317852, 1.57e-14)) #value where the optimization algorithm is going to start. A vector of 10 values for the parameters in log scale
+results<-rep(0,11) #vector useful to save optimization results
+my.options<-list("algorithm"= "NLOPT_LN_SBPLX","ftol_rel"=1e-08,"print_level"=1,"maxtime"=170000000, "maxeval"=1000) # Options used in nloptr, for more information ?nloptr. This is a subplex algorithm, with high tolerance to fine a very precise optimum.
+mle<-nloptr(x0=x.0,eval_f=negloglikelihood,opts=my.options, phy=mytree, tip.values=mysample,pi.0=NULL,Q.FUN=Q_bichrom, Q.ARGS = list(size=50))
+print(mle)
+results[1:10]<-exp(mle$solution) # Maximum likelihood estimates in original scale
+results[11]<-mle$objective # Negative log-likelihood value at the MLEs (minimum)
+```
